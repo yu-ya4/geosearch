@@ -37,6 +37,7 @@ def lsa(mat, k):
     Returns:
         LSAを適用した結果
     """
+
     U, s, V = svd(mat)
 
     #print("ランクk=%d 累積寄与率=%f" % (k, sum(s[:k]) / sum(s)))
@@ -60,13 +61,50 @@ def read_act_geoclass_matrix():
     for line in f:
         line = line.replace('\n', '')
         line = line.split(' ')
-        #print(line)
+        for i in range(len(line)):
+            #行末の空白対策
+            if line[i] == "":
+                del line[i]
+                continue
+            line[i] = float(line[i])
+
         act_geoclass_mat.append(line)
         if line == '':
             break
     f.close()
 
     return act_geoclass_mat
+
+def read_act_list():
+    """
+    テキストファイルから行動のリストを読み込み返す
+
+    Returns:
+        行動のリスト
+    """
+    act_list = []
+
+    f = open('./act-list.txt', 'r')
+    for line in f:
+        line = line.replace('\n', '')
+        act_list.append(line)
+    f.close()
+    return act_list
+
+def read_geoclass_list():
+    """
+    テキストファイルから地物クラスのリストを読み込み返す
+
+    Returns:
+        地物クラスのリスト
+    """
+    geoclass_list = []
+    f = open('./geoclass-list.txt', 'r') #地物クラスリストを読み込む
+    for line in f:
+        geoclass = line.replace('\n', '')
+        geoclass_list.append(geoclass)
+    f.close()
+    return geoclass_list
 
 
 def get_topk_column_index(mat, row, k):
@@ -76,136 +114,66 @@ def get_topk_column_index(mat, row, k):
     Args:
         mat: 行列
         row: 行番号
-        l: 取得するインデックス件数
+        k: 取得するインデックス件数
 
     Returns:
         指定した行の上位k件のインデックス番号からなるリスト
     """
 
     topk_index = []
-    column = mat[k]
+    column = mat[row]
 
     while k > 0:
+        #print(column)
         max_index = np.nanargmax(column)
         topk_index.append(max_index)
-        column[0, max_index] = "NaN"
+        column[0, max_index] = -10000
+        #column[0, max_index] = float("num") nanargmaxが正しく動いてくれてない？
         k -= 1
 
     return topk_index
 
 
-def get_svd_sim(act):
-    acts = []
-    #行動のリストを読み込む
-    f = open('../acts_new_list.txt', 'r')
-    for line in f:
-        line = line.replace('\n', '')
-        line = line.split(':')
-        ac = line[0] + line[1]
-        acts.append(ac)
-    act_num = len(acts)
+def get_topk_geoclass(act, mat, k):
+    """
+    入力行動についてスコアが高い上位k件の地物クラスとそのスコアからからなる2次元リストを返す
 
-    act_id = acts.index(act)
+    Args:
+        act: 行動(ex."暇:潰せる")
+        mat: 対象とする行動地物クラス行列
+        k: 取得する地物クラス件数
 
-    svd_mat = []
-    f = open('../svd_new_result.txt', 'r')
-    for line in f:
-        line = line.replace('\n', '')
-        line = line.split(' ')
-        for i in range(len(line)):
-            if line[i] == '':
-                del line[i]
-                continue
-            line[i] = float(line[i])
-        svd_mat.append(line)
+    Returns:
+        地物クラスとそのスコアの辞書
+    """
 
-    in_vec = svd_mat[act_id]
-    res = {}
-    for i in range(0, act_num):
-        if i == act_id:
-            continue
-        sim = cos(in_vec, svd_mat[i])
-        act = acts[i]
-        res[act] = float(sim)
+    act_list = read_act_list()
+    act_index = act_list.index(act)
 
-    r = {}
-    count = 0
-    for ac, score in sorted(res.items(), key = lambda x:x[1], reverse = True):
-        if count == 5:
-            break
-        r[ac] = score
-        #print(ac + ':' + str(score))
-        count +=1
+    topk_index = get_topk_column_index(mat, act_index, k)
 
-    return r
-
-
-def get_lsi_matrix(act):
-    '''
-    行動地物クラスマトリックスにLSIを適用する
-
-    Retrun:
-        LSIを適用したマトリックス
-    '''
-
-    acts = {} #食事楽しめる: 278
-    f = open('./act-list.txt', 'r') #行動辞書を読み込む
-    i = 0
-    for line in f:
-        line = line.replace('\n', '')
-        line = line.replace(':', '')
-        acts[line] = i
-        i += 1
-    f.close()
-
-    geoclasses = []
-    f = open('./geoclass-list.txt', 'r') #地物クラスリストを読み込む
-    for line in f:
-        geo = line.replace('\n', '')
-        geos.append(geo)
-    f.close()
-
-    act_geo_mat = []
-    f = open('../svd_new_result.txt', 'r') #SVDした結果のマトリックスを読み込む
-    for line in f:
-        line = line.replace('\n', '')
-        line = line.split(' ')
-        for i in range(len(line)):
-            if line[i] == '':
-                del line[i]
-                continue
-            line[i] = line[i]
-        act_geo_mat.append(line)
-    f.close()
-
-    act_index = int(acts[act])
-    geos_num = len(geos)
-
-    vec = {} #地物id: スコア
-    for i in range(0, geos_num):
-        g = act_geo_mat[act_index]
-        vec[i] = float(g[i])
-
-    res = {}
-    #count = 0
-    for geo_id, score in sorted(vec.items(), key = lambda x:x[1], reverse = True):
-        #if count ==20:
-            #break
-        geo = geos[geo_id]
-        res[geo] = score
-        if score >= 1:
-            print(geo + ':' + str(score))
-        #count += 1
-
-    return res
+    return topk_index
 
 if __name__ == '__main__':
 
-    mat = [[1, 2, 3], [1, 2, 0], [4, 1, 6], [1, 1, 0]]
-    mat = np.matrix(mat)
-    lsa_mat = lsa(mat, 3)
-    topk_index = get_topk_column_index(lsa_mat, 1, 2)
-    print(topk_index)
-    act_geoclass_mat = read_act_geoclass_matrix()
+    # mat = [[1.0, 3, 1], [1, 2, 0], [4, 1, 6], [1, 1, 0]]
+    # print(type(mat))
+    # mat = np.matrix(mat)
+    # print(type(mat))
+    # lsa_mat = lsa(mat, 3)
 
-    #print(len(act_geoclass_mat[1]))
+    act_geoclass_mat = read_act_geoclass_matrix()
+    act_geoclass_mat = np.matrix(act_geoclass_mat)
+
+    #print((act_geoclass_mat[1434, 0]))
+    #exit()
+    lsa_mat = lsa(act_geoclass_mat, 15)
+    # topk_index = get_topk_column_index(mat, 2, 2)
+    # print(topk_index)
+    # topk_index = get_topk_column_index(act_geoclass_mat, 1434, 5)
+    # print(topk_index)
+
+    act = "食事:する"
+    result = get_topk_geoclass(act, lsa_mat, 10)
+
+    print(result)
