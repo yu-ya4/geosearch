@@ -19,10 +19,8 @@ def svd(mat):
     """
     #mat = np.matrix(mat)
 
-    #rank = np.linalg.matrix_rank(mat)
-    #print(rank)
 
-    U, s, V = np.linalg.svd(mat, full_matrices=False)
+    U, s, V = np.linalg.svd(mat, full_matrices=0)
     #print(s)
 
     return [U, s, V]
@@ -39,12 +37,17 @@ def lsa(mat, k):
     Returns:
         LSAを適用した結果
     """
+    rank = np.linalg.matrix_rank(mat)
 
+    # ランク以上の次元数を指定した場合は，ランク数分の特徴量を使用
+    #npの仕様上，ランク以上分の特徴量を算出してるっぽい？
     U, s, V = svd(mat)
+    if k > rank:
+        k = rank
 
     #print("ランクk=%d 累積寄与率=%f" % (k, sum(s[:k]) / sum(s)))
     S = np.zeros((len(s),len(s)))
-    S[:k, :k] = np.diag(s[:k]) #上から個の特異値のみを使用
+    S[:k, :k] = np.diag(s[:k]) #上からk個の特異値のみを使用
 
     lsa_mat = np.dot(U, np.dot(S, V))
 
@@ -178,6 +181,7 @@ def read_geoclass_true_list(act):
     """
     act_list = read_act_list()
     act_index = act_list.index(act)
+
     filename = str(act_index) + "-true-list.txt"
 
     true_list = []
@@ -238,16 +242,16 @@ if __name__ == '__main__':
     #
     # # print(type(mat))
     # mat = np.matrix(mat)
-    # t = mat.T
-    # print(t)
+    # #t = mat.T
+    # #print(t)
     # # print(type(mat))
     # lsa_mat = lsa(mat, 2)
     #
-    # print(lsa_mat)
+    # #print(lsa_mat)
     #
-    # lsa_matt = lsa(t, 2)
+    # #lsa_matt = lsa(t, 2)
     #
-    # print(lsa_matt)
+    # #print(lsa_matt)
     # exit()
 
     act_geoclass_mat = read_act_geoclass_matrix()
@@ -263,12 +267,12 @@ if __name__ == '__main__':
     # print(topk_index)
 
 
-    recall = calc_geoclass_recall("食事:する", lsa_mat, 1000)
+    recall = calc_geoclass_recall("時間:潰せる", lsa_mat, 1000)
     print(recall)
     exit()
 
     act = "時間:潰せる"
-    result = get_topk_geoclass(act, lsa_mat, 100)
+    result = get_topk_geoclass(act, lsa_mat, 10)
 
     for i in range(len(result)):
         geoclass = result[i][0]
