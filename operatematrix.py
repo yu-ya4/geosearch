@@ -167,6 +167,56 @@ def get_topk_geoclass(act, mat, k):
         result.append([geoclass, score])
     return result
 
+def read_geoclass_true_list(act):
+    """
+    テキストファイルから行動ごとの地物クラスの正誤表リストを読み込み返す
+
+    Returns:
+        地物クラスの正誤表のリスト
+    """
+    act_list = read_act_list()
+    act_index = act_list.index(act)
+    filename = str(act_index) + "-true-list.txt"
+
+    true_list = []
+    f = open('./geoclass_true_list/' + filename, 'r')
+    for line in f:
+        line = int(line.replace('\n', ''))
+        true_list.append(line)
+    f.close()
+    return true_list
+
+
+def clac_geoclass_recall(act, mat, k):
+    """
+    入力行動についてスコアが高い上位k件の地物クラスについて再現率を計算する
+
+    Args:
+        act: 行動(ex."暇:潰せる")
+        mat: 対象とする行動地物クラス行列
+        k: 取得する地物クラス件数
+
+    Returns:
+        再現率
+    """
+    act_list = read_act_list()
+    act_index = act_list.index(act)
+
+    topk_index = get_topk_column_index(mat, act_index, k)
+    geoclass_list = read_geoclass_list()
+
+    result = []
+
+    for i in range(k):
+        geoclass = geoclass_list[topk_index[i]]
+        score = mat[act_index, topk_index[i]]
+        if score <= 0.0:
+            break
+        if score < 1.0:
+            geoclass = "*" + geoclass
+        result.append([geoclass, score])
+    return result
+
 if __name__ == '__main__':
 
     # mat = [[5, 0, 0, 0],
@@ -190,6 +240,10 @@ if __name__ == '__main__':
     #
     # print(lsa_matt)
     # exit()
+
+    a = read_geoclass_true_list("食事:する")
+    print(a)
+    exit()
 
     act_geoclass_mat = read_act_geoclass_matrix()
     act_geoclass_mat = np.matrix(act_geoclass_mat)
