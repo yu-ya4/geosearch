@@ -16,10 +16,10 @@ def svd(mat):
         特異値分解された行列3つ
         特異値はリストで返される
     """
-    mat = np.matrix(mat)
+    #mat = np.matrix(mat)
 
-    rank = np.linalg.matrix_rank(mat)
-    print(rank)
+    #rank = np.linalg.matrix_rank(mat)
+    #print(rank)
 
     U, s, V = np.linalg.svd(mat, full_matrices=False)
 
@@ -69,9 +69,9 @@ def read_act_geoclass_matrix():
     return act_geoclass_mat
 
 
-def get_top_k_column_index(mat, row, k):
+def get_topk_column_index(mat, row, k):
     """
-    指定した行の上位k件のインデックス番号を配列で返す
+    指定した行の上位k件のインデックス番号をリストで返す
 
     Args:
         mat: 行列
@@ -79,8 +79,19 @@ def get_top_k_column_index(mat, row, k):
         l: 取得するインデックス件数
 
     Returns:
-        指定した行の上位k件のインデックス番号からなる配列
+        指定した行の上位k件のインデックス番号からなるリスト
     """
+
+    topk_index = []
+    column = mat[k]
+
+    while k > 0:
+        max_index = np.nanargmax(column)
+        topk_index.append(max_index)
+        column[0, max_index] = "NaN"
+        k -= 1
+
+    return topk_index
 
 
 def get_svd_sim(act):
@@ -190,9 +201,11 @@ def get_lsi_matrix(act):
 
 if __name__ == '__main__':
 
-    mat = [[1, 2, 3], [1, 2, 0], [2, 4, 6], [1, 1, 0]]
+    mat = [[1, 2, 3], [1, 2, 0], [4, 1, 6], [1, 1, 0]]
+    mat = np.matrix(mat)
     lsa_mat = lsa(mat, 3)
-
+    topk_index = get_topk_column_index(lsa_mat, 1, 2)
+    print(topk_index)
     act_geoclass_mat = read_act_geoclass_matrix()
 
-    print(len(act_geoclass_mat[1]))
+    #print(len(act_geoclass_mat[1]))
