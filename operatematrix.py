@@ -184,4 +184,6 @@ if __name__ == '__main__':
     act = "食事:する"
     result = get_topk_geoclass(act, lsa_mat, 10)
 
-    print(result)
+    for i in range(len(result)):
+        geoclass = result[i][0]
+        print(geoclass)
