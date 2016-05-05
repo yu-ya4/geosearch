@@ -26,8 +26,6 @@ def svd(mat):
     return [U, s, V]
 
 
-
-
 def lsa(mat, k):
     """
     行列にLSAを適用する
@@ -45,11 +43,45 @@ def lsa(mat, k):
     S = np.zeros((len(s),len(s)))
     S[:k, :k] = np.diag(s[:k]) #上から個の特異値のみを使用
 
-    print(S)
-
     lsa_mat = np.dot(U, np.dot(S, V))
 
     return lsa_mat
+
+
+def read_act_geoclass_matrix():
+    """
+    テキストファイルから行動地物クラス行列を読み込み返す
+
+    Returns:
+        行動地物クラス行列
+    """
+    act_geoclass_mat = [] #行動-地物クラス行列
+    f = open('./act-geoclass-matrix.txt', 'r')
+    for line in f:
+        line = line.replace('\n', '')
+        line = line.split(' ')
+        #print(line)
+        act_geoclass_mat.append(line)
+        if line == '':
+            break
+    f.close()
+
+    return act_geoclass_mat
+
+
+def get_top_k_column_index(mat, row, k):
+    """
+    指定した行の上位k件のインデックス番号を配列で返す
+
+    Args:
+        mat: 行列
+        row: 行番号
+        l: 取得するインデックス件数
+
+    Returns:
+        指定した行の上位k件のインデックス番号からなる配列
+    """
+
 
 def get_svd_sim(act):
     acts = []
@@ -95,28 +127,6 @@ def get_svd_sim(act):
         count +=1
 
     return r
-
-def read_act_geoclass_matrix():
-    """
-    テキストファイルから行動地物クラス行列を読み込み返す
-
-    Returns:
-        行動地物クラス行列
-    """
-    act_geoclass_mat = [] #行動-地物クラス行列
-    f = open('./act-geoclass-matrix.txt', 'r')
-    for line in f:
-        line = line.replace('\n', '')
-        line = line.split(' ')
-        #print(line)
-        act_geoclass_mat.append(line)
-        if line == '':
-            break
-    f.close()
-
-    return act_geoclass_mat
-
-
 
 
 def get_lsi_matrix(act):
