@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8
 
+import copy
 import math
 import numpy as np
 from scipy import linalg
@@ -119,9 +120,9 @@ def get_topk_column_index(mat, row, k):
     Returns:
         指定した行の上位k件のインデックス番号からなるリスト
     """
-
+    matrix = copy.deepcopy(mat)
     topk_index = []
-    column = mat[row]
+    column = matrix[row]
 
     while k > 0:
         #print(column)
@@ -151,8 +152,15 @@ def get_topk_geoclass(act, mat, k):
     act_index = act_list.index(act)
 
     topk_index = get_topk_column_index(mat, act_index, k)
+    geoclass_list = read_geoclass_list()
 
-    return topk_index
+    result = []
+
+    for i in range(k):
+        geoclass = geoclass_list[topk_index[i]]
+        score = mat[act_index, topk_index[i]]
+        result.append([geoclass, score])
+    return result
 
 if __name__ == '__main__':
 
