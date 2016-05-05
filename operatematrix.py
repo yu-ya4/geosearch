@@ -171,6 +171,8 @@ def read_geoclass_true_list(act):
     """
     テキストファイルから行動ごとの地物クラスの正誤表リストを読み込み返す
 
+    Args:
+        行動(ex. "デート:する")
     Returns:
         地物クラスの正誤表のリスト
     """
@@ -187,9 +189,10 @@ def read_geoclass_true_list(act):
     return true_list
 
 
-def clac_geoclass_recall(act, mat, k):
+def calc_geoclass_recall(act, mat, k):
     """
     入力行動についてスコアが高い上位k件の地物クラスについて再現率を計算する
+    ただし，スコアが1以上のもののみ正解とする
 
     Args:
         act: 行動(ex."暇:潰せる")
@@ -199,23 +202,29 @@ def clac_geoclass_recall(act, mat, k):
     Returns:
         再現率
     """
+    true_list = read_geoclass_true_list(act)
+    all_true_count = true_list.count(1)
+    print(all_true_count)
+
     act_list = read_act_list()
     act_index = act_list.index(act)
 
     topk_index = get_topk_column_index(mat, act_index, k)
     geoclass_list = read_geoclass_list()
 
-    result = []
+    true_count = 0
 
     for i in range(k):
-        geoclass = geoclass_list[topk_index[i]]
         score = mat[act_index, topk_index[i]]
-        if score <= 0.0:
-            break
         if score < 1.0:
-            geoclass = "*" + geoclass
-        result.append([geoclass, score])
-    return result
+            break
+        if true_list[topk_index[i]] == 1:
+            true_count += 1
+
+    print(true_count)
+    return float(true_count/all_true_count)
+
+
 
 if __name__ == '__main__':
 
@@ -241,20 +250,22 @@ if __name__ == '__main__':
     # print(lsa_matt)
     # exit()
 
-    a = read_geoclass_true_list("食事:する")
-    print(a)
-    exit()
-
     act_geoclass_mat = read_act_geoclass_matrix()
     act_geoclass_mat = np.matrix(act_geoclass_mat)
 
     k = input()
     k = int(k)
+
     lsa_mat = lsa(act_geoclass_mat, k)
     # topk_index = get_topk_column_index(mat, 2, 2)
     # print(topk_index)
     # topk_index = get_topk_column_index(act_geoclass_mat, 1434, 5)
     # print(topk_index)
+
+
+    recall = calc_geoclass_recall("食事:する", lsa_mat, 1000)
+    print(recall)
+    exit()
 
     act = "時間:潰せる"
     result = get_topk_geoclass(act, lsa_mat, 100)
