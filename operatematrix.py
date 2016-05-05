@@ -23,6 +23,7 @@ def svd(mat):
     #print(rank)
 
     U, s, V = np.linalg.svd(mat, full_matrices=False)
+    #print(s)
 
     return [U, s, V]
 
@@ -145,7 +146,7 @@ def get_topk_geoclass(act, mat, k):
         k: 取得する地物クラス件数
 
     Returns:
-        地物クラスとそのスコアの辞書
+        地物クラスとそのスコアの辞書(ex. [["駅", 11], ["カフェ", 8], ...])
     """
 
     act_list = read_act_list()
@@ -159,31 +160,52 @@ def get_topk_geoclass(act, mat, k):
     for i in range(k):
         geoclass = geoclass_list[topk_index[i]]
         score = mat[act_index, topk_index[i]]
+        if score <= 0.0:
+            break
+        if score < 1.0:
+            geoclass = "*" + geoclass
         result.append([geoclass, score])
     return result
 
 if __name__ == '__main__':
 
-    # mat = [[1.0, 3, 1], [1, 2, 0], [4, 1, 6], [1, 1, 0]]
-    # print(type(mat))
+    # mat = [[5, 0, 0, 0],
+    #         [3, 4, 0, 0],
+    #         [2, 0, 1, 0],
+    #         [2, 4, 0, 3],
+    #         [0, 5, 0, 4],
+    #         [0, 0, 0, 5]]
+    #
+    #
+    # # print(type(mat))
     # mat = np.matrix(mat)
-    # print(type(mat))
-    # lsa_mat = lsa(mat, 3)
+    # t = mat.T
+    # print(t)
+    # # print(type(mat))
+    # lsa_mat = lsa(mat, 2)
+    #
+    # print(lsa_mat)
+    #
+    # lsa_matt = lsa(t, 2)
+    #
+    # print(lsa_matt)
+    # exit()
 
     act_geoclass_mat = read_act_geoclass_matrix()
     act_geoclass_mat = np.matrix(act_geoclass_mat)
 
-    #print((act_geoclass_mat[1434, 0]))
-    #exit()
-    lsa_mat = lsa(act_geoclass_mat, 15)
+    k = input()
+    k = int(k)
+    lsa_mat = lsa(act_geoclass_mat, k)
     # topk_index = get_topk_column_index(mat, 2, 2)
     # print(topk_index)
     # topk_index = get_topk_column_index(act_geoclass_mat, 1434, 5)
     # print(topk_index)
 
-    act = "食事:する"
-    result = get_topk_geoclass(act, lsa_mat, 10)
+    act = "時間:潰せる"
+    result = get_topk_geoclass(act, lsa_mat, 100)
 
     for i in range(len(result)):
         geoclass = result[i][0]
-        print(geoclass)
+        score = str(result[i][1])
+        print(geoclass + ":" +score)
