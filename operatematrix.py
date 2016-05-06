@@ -208,7 +208,7 @@ def calc_geoclass_recall(act, mat, k):
     """
     true_list = read_geoclass_true_list(act)
     all_true_count = true_list.count(1)
-    print(all_true_count)
+    #print(all_true_count)
 
     act_list = read_act_list()
     act_index = act_list.index(act)
@@ -225,7 +225,7 @@ def calc_geoclass_recall(act, mat, k):
         if true_list[topk_index[i]] == 1:
             true_count += 1
 
-    print(true_count)
+    #print(true_count)
     return float(true_count/all_true_count)
 
 
@@ -257,8 +257,20 @@ if __name__ == '__main__':
     act_geoclass_mat = read_act_geoclass_matrix()
     act_geoclass_mat = np.matrix(act_geoclass_mat)
 
-    k = input()
-    k = int(k)
+    # k = input()
+    # k = int(k)
+    """
+    評価用
+    """
+    for k in range(24):
+        lsa_mat = lsa(act_geoclass_mat, k*20)
+        recall = calc_geoclass_recall("サプライズ:する", lsa_mat, 1000)
+        print(recall)
+    exit()
+
+
+
+    exit()
 
     lsa_mat = lsa(act_geoclass_mat, k)
     # topk_index = get_topk_column_index(mat, 2, 2)
@@ -269,6 +281,8 @@ if __name__ == '__main__':
 
     recall = calc_geoclass_recall("時間:潰せる", lsa_mat, 1000)
     print(recall)
+
+
     exit()
 
     act = "時間:潰せる"
