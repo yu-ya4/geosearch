@@ -217,6 +217,11 @@ def evaluate_geoclass(act, mat, k):
     geoclass_list = read_geoclass_list()
 
     true_count = 0
+    """
+    評価をするために取得する地物クラスの数はkで指定しているが，
+    取得できるよりも大きい数を指定していた時のために
+    取得地物クラス数をカウントする
+    """
     geoclass_count = 0
 
     for i in range(k):
@@ -227,8 +232,15 @@ def evaluate_geoclass(act, mat, k):
             true_count += 1
         geoclass_count += 1
 
-    recall = float(true_count/all_true_count)
-    precision = float(true_count/geoclass_count)
+    try:
+        recall = float(true_count/all_true_count)
+    except ZeroDivisionError as e:
+        recall = "ZeroDivisionError"
+    try:
+        precision = float(true_count/geoclass_count)
+    except ZeroDivisionError as e:
+        precision = "ZeroDivisionError"
+
     return [recall, precision]
 
 
