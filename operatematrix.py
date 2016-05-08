@@ -217,6 +217,7 @@ def evaluate_geoclass(act, mat, k):
     geoclass_list = read_geoclass_list()
 
     true_count = 0
+    geoclass_count = 0
 
     for i in range(k):
         score = mat[act_index, topk_index[i]]
@@ -224,9 +225,11 @@ def evaluate_geoclass(act, mat, k):
             break
         if true_list[topk_index[i]] == 1:
             true_count += 1
+        geoclass_count += 1
 
-    #print(true_count)
-    return float(true_count/all_true_count)
+    recall = float(true_count/all_true_count)
+    precision = float(true_count/geoclass_count)
+    return [recall, precision]
 
 
 
@@ -261,13 +264,13 @@ if __name__ == '__main__':
     k = int(k)
     """
     評価用
+    """
 
     for k in range(24):
         lsa_mat = lsa(act_geoclass_mat, k*20)
-        recall = evaluat_geoclass("デート:する", lsa_mat, 1000)
+        recall = evaluate_geoclass("デート:する", lsa_mat, 1000)
         print(recall)
     exit()
-    """
 
     lsa_mat = lsa(act_geoclass_mat, k)
     # topk_index = get_topk_column_index(mat, 2, 2)
