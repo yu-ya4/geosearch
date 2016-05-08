@@ -193,9 +193,9 @@ def read_geoclass_true_list(act):
     return true_list
 
 
-def calc_geoclass_recall(act, mat, k):
+def evaluate_geoclass(act, mat, k):
     """
-    入力行動についてスコアが高い上位k件の地物クラスについて再現率を計算する
+    入力行動についてスコアが高い上位k件の地物クラスについて再現率と適合率を計算する
     ただし，スコアが1以上のもののみ正解とする
 
     Args:
@@ -204,7 +204,7 @@ def calc_geoclass_recall(act, mat, k):
         k: 取得する地物クラス件数
 
     Returns:
-        再現率
+        [再現率，適合率]
     """
     true_list = read_geoclass_true_list(act)
     all_true_count = true_list.count(1)
@@ -257,20 +257,17 @@ if __name__ == '__main__':
     act_geoclass_mat = read_act_geoclass_matrix()
     act_geoclass_mat = np.matrix(act_geoclass_mat)
 
-    # k = input()
-    # k = int(k)
+    k = input()
+    k = int(k)
     """
     評価用
-    """
+
     for k in range(24):
         lsa_mat = lsa(act_geoclass_mat, k*20)
-        recall = calc_geoclass_recall("サプライズ:する", lsa_mat, 1000)
+        recall = evaluat_geoclass("デート:する", lsa_mat, 1000)
         print(recall)
     exit()
-
-
-
-    exit()
+    """
 
     lsa_mat = lsa(act_geoclass_mat, k)
     # topk_index = get_topk_column_index(mat, 2, 2)
@@ -279,16 +276,17 @@ if __name__ == '__main__':
     # print(topk_index)
 
 
-    recall = calc_geoclass_recall("時間:潰せる", lsa_mat, 1000)
-    print(recall)
+    # recall = calc_geoclass_recall("時間:潰せる", lsa_mat, 1000)
+    # print(recall)
+    #
+    #
+    # exit()
 
-
-    exit()
-
-    act = "時間:潰せる"
+    act = "星:見える"
     result = get_topk_geoclass(act, lsa_mat, 10)
 
     for i in range(len(result)):
         geoclass = result[i][0]
-        score = str(result[i][1])
-        print(geoclass + ":" +score)
+        print(geoclass)
+        # score = str(result[i][1])
+        # print(geoclass + ":" +score)
