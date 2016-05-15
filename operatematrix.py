@@ -101,13 +101,15 @@ def read_act_list():
         line = line.replace('\n', '')
         act_list.append(line)
     f.close()
+    
     return act_list
 
 def read_geoclass_list():
     """
-    テキストファイルから地物クラスのリストを読み込み返す
+    テキストファイル(geoclass-list.txt)から地物クラスのリストを読み込み返す
 
     Returns:
+        List<string>
         地物クラスのリスト
     """
     geoclass_list = []
@@ -116,6 +118,7 @@ def read_geoclass_list():
         geoclass = line.replace('\n', '')
         geoclass_list.append(geoclass)
     f.close()
+
     return geoclass_list
 
 
