@@ -61,9 +61,10 @@ def lsa(mat, k):
 
 def read_act_geoclass_matrix():
     """
-    テキストファイルから行動地物クラス行列を読み込み返す
+    テキストファイル("act-geoclass-matrix.txt")から行動地物クラス行列を読み込み返す
 
     Returns:
+        List<List<float>>
         行動地物クラス行列
     """
     act_geoclass_mat = [] #行動-地物クラス行列
