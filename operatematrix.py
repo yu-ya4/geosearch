@@ -12,6 +12,7 @@ def svd(mat):
 
     Args:
         mat: numpy.matrix
+            SVDする行列
 
     Returns:
         List<numpy.matrix>
@@ -36,19 +37,24 @@ def lsa(mat, k):
     行列にLSAを適用する
 
     Args:
-        mat: LSAを適用する行列
-        k: 圧縮する次元数
+        mat: numpy.matrix
+            LSAを適用する行列
+        k: int
+            圧縮する次元数
 
     Returns:
+        numpy.matrix
         LSAを適用した結果
     """
     rank = np.linalg.matrix_rank(mat)
-
     # ランク以上の次元数を指定した場合は，ランク数分の特徴量を使用
     #npの仕様上，ランク以上分の特徴量を算出してるっぽい？
+    # 負の値が入力された場合はk = 0 とする
     U, s, V = svd(mat)
     if k > rank:
         k = rank
+    if k < 0:
+        k = 0
 
     #print("ランクk=%d 累積寄与率=%f" % (k, sum(s[:k]) / sum(s)))
     S = np.zeros((len(s),len(s)))
@@ -101,7 +107,7 @@ def read_act_list():
         line = line.replace('\n', '')
         act_list.append(line)
     f.close()
-    
+
     return act_list
 
 def read_geoclass_list():
