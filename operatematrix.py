@@ -88,9 +88,10 @@ def read_act_geoclass_matrix():
 
 def read_act_list():
     """
-    テキストファイルから行動のリストを読み込み返す
+    テキストファイル("act-list.txt")から行動のリストを読み込み返す
 
     Returns:
+        List<string>
         行動のリスト
     """
     act_list = []
