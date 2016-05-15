@@ -11,15 +11,20 @@ def svd(mat):
     行列を特異値分解(SVD)する
 
     Args:
-        mat: 行列
+        mat: numpy.matrix
 
     Returns:
+        List<numpy.matrix>
         特異値分解された行列3つ
         特異値はリストで返される
     """
     #mat = np.matrix(mat)
 
-
+    """
+    full_matrices:
+        1: UとVが正方行列に(次元が合わずに死ぬ??)
+        0: UとVのかたちをいい感じに(とりあえずこれでなんとかしてる)
+    """
     U, s, V = np.linalg.svd(mat, full_matrices=0)
     #print(s)
 
