@@ -64,6 +64,18 @@ def lsa(mat, k):
 
     return lsa_mat
 
+def probalistic_matrix_factorization(mat):
+    """
+    行列にProbalistic Matrix Factorizationを適用する
+
+    Args:
+        mat: numpy.matrix
+            PMAを適用する行列
+    Returns:
+        適用結果
+    """
+
+
 
 def read_act_geoclass_matrix():
     """
