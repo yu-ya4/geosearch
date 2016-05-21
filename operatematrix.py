@@ -70,7 +70,18 @@ def probalistic_matrix_factorization(mat):
 
     Args:
         mat: numpy.matrix
-            PMAを適用する行列
+            PMFを適用する行列
+    Returns:
+        適用結果
+    """
+
+def factorization_machine(mat):
+    """
+    行列にFactorization Machineを適用する
+
+    Args:
+        mat: numpy.matrix
+
     Returns:
         適用結果
     """
