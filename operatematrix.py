@@ -64,9 +64,9 @@ def lsa(mat, k):
 
     return lsa_mat
 
-def probalistic_matrix_factorization(mat):
+def probabilistic_matrix_factorization(mat):
     """
-    行列にProbalistic Matrix Factorizationを適用する
+    行列にProbabilistic Matrix Factorizationを適用する
 
     Args:
         mat: numpy.matrix
@@ -234,7 +234,7 @@ def read_geoclass_true_list(act):
 
 def evaluate_geoclass(act, mat, k):
     """
-    入力行動についてスコアが高い上位k件の地物クラスについて再現率と適合率を計算する
+    入力行動についてスコアが高い上位k件の地物クラスについて再現率と適合率，F値を計算する
     ただし，スコアが1以上のもののみ正解とする
 
     Args:
@@ -243,7 +243,7 @@ def evaluate_geoclass(act, mat, k):
         k: 取得する地物クラス件数
 
     Returns:
-        [再現率，適合率]
+        [再現率，適合率，F値]
     """
     true_list = read_geoclass_true_list(act)
     all_true_count = true_list.count(1)
@@ -279,6 +279,11 @@ def evaluate_geoclass(act, mat, k):
         precision = float(true_count/geoclass_count)
     except ZeroDivisionError as e:
         precision = "ZeroDivisionError"
+
+    try:
+        f_measure = 2 * recall * precision/(recall + precision)
+    except ZeroDivisionError as e:
+        f_measure = "ZeroDivisionError"
 
     return [recall, precision]
 
