@@ -72,9 +72,9 @@ class CollaborativeFiltering:
             適用結果
         """
 
-    def factorization_machine(self):
+    def factorization_machines(self):
         """
-        行列にFactorization Machineを適用する
+        行列にFactorization Machinesを適用する
 
         Returns:
             適用結果
@@ -101,7 +101,7 @@ class CollaborativeFiltering:
             K: the number of latent features
             steps: the maximum number of steps to perform the optimisation
             alfha: the learning rate
-            beta: the regularization parameter
+            beta: the regularization parameter,  avoid overfitting
             threshold: when error is under threshold, break
 
         """
@@ -110,6 +110,7 @@ class CollaborativeFiltering:
         Q = np.random.rand(K, len(R[0]))
 
         for step in range(steps):
+            print(step)
             for i in range(len(R)):
                 for j in range(len(R[i])):
                     if R[i][j] == 0:
@@ -121,4 +122,4 @@ class CollaborativeFiltering:
             error = self.get_error(R, P, Q, beta)
             if error < threshold:
                 break
-        return P, Q
+        return np.matrix(P), np.matrix(Q)
