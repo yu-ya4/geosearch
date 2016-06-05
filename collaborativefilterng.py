@@ -93,8 +93,18 @@ class CollaborativeFiltering:
         error += beta/2.0 * (np.linalg.norm(P) + np.linalg.norm(Q))
         return error
 
-
     def matrix_factorization(self, K, steps=5000, alpha=0.0002, beta=0.02, threshold=0.001):
+        """
+        行列にMatrix Factorizationを適用する
+
+        Args:
+            K: the number of latent features
+            steps: the maximum number of steps to perform the optimisation
+            alfha: the learning rate
+            beta: the regularization parameter
+            threshold: when error is under threshold, break
+
+        """
         R = np.array(self.matrix)
         P = np.random.rand(K, len(R))
         Q = np.random.rand(K, len(R[0]))
