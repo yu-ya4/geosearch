@@ -210,37 +210,66 @@ def evaluate_geoclass(act, mat, k):
 
 if __name__ == '__main__':
 
-    mat = [[5, 0, 0, 0],
-            [3, 4, 0, 0],
-            [2, 0, 1, 0],
-            [2, 4, 0, 3],
-            [0, 5, 0, 4],
-            [0, 0, 0, 5]]
+
+    # R = np.array([
+    #         [5, 3, 0, 1],
+    #         [4, 0, 0, 1],
+    #         [1, 1, 0, 5],
+    #         [1, 0, 0, 4],
+    #         [0, 1, 5, 4],
+    #         ]
+    #     )
+    # R = np.matrix(R)
+    # cf = CollaborativeFiltering(R)
+    #
+    # nP, nQ = cf.matrix_factorization(2)
+    # nR = np.dot(nP.T, nQ)
+    # print(nR)
+
+    # lsa_mat = cf.lsa(2)
+    #
+    # print(lsa_mat)
 
 
-    mat = np.matrix(mat)
 
-    cf = CollaborativeFiltering(mat)
-
-
-    lsa_mat = cf.lsa(2)
-
-    print(lsa_mat)
-
-    #lsa_matt = lsa(t, 2)
-
-    #print(lsa_matt)
-    exit()
 
     act_geoclass_mat = read_act_geoclass_matrix()
     act_geoclass_mat = np.matrix(act_geoclass_mat)
     cf = CollaborativeFiltering(act_geoclass_mat)
 
-    k = input()
-    k = int(k)
+    #lsa_mat = cf.lsa(30)
+    nP, nQ = cf.matrix_factorization(3)
+    mf_mat = np.dot(nP.T, nQ)
+
+    f1 = open('mf-matrix.txt', 'w')
+    nR = np.array(mf_mat)
+    for i in range(len(nR)):
+        line = ""
+        for j in range(len(nR[i])):
+            value = nR[i][j]
+            if j == (len(nR[i]) - 1):
+                line += str(value) + "\n"
+                break
+            line += str(value) + " "
+        #print(line)
+        # for qid in qids:
+        #     line = line + ' ' + qid
+        # line += '\n'
+        f1.write(line)
+    f1.close()
+    exit()
+
+    #recall = evaluate_geoclass("デート:する", lsa_mat, 1000)
+    #print(recall)
+    # recall = evaluate_geoclass("デート:する", mf_mat, 1000)
+    # print(recall)
+
+
+
     """
     評価用
-    """
+    k = input()
+    k = int(k)
 
     for k in range(24):
         lsa_mat = lsa(act_geoclass_mat, k*20)
@@ -269,3 +298,5 @@ if __name__ == '__main__':
         print(geoclass)
         # score = str(result[i][1])
         # print(geoclass + ":" +score)
+
+    """
