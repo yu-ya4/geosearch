@@ -34,6 +34,33 @@ def read_act_geoclass_matrix():
 
     return act_geoclass_mat
 
+def read_mf_matrix():
+    """
+    テキストファイル("mf-matrix.txt")から行動地物クラス行列を読み込み返す
+
+    Returns:
+        List<List<float>>
+        行動地物クラス行列
+    """
+    mf_mat = [] #行動-地物クラス行列
+    f = open('./mf-matrix-15.txt', 'r')
+    for line in f:
+        line = line.replace('\n', '')
+        line = line.split(' ')
+        for i in range(len(line)):
+            #行末の空白対策
+            if line[i] == "":
+                del line[i]
+                continue
+            line[i] = float(line[i])
+
+        mf_mat.append(line)
+        if line == '':
+            break
+    f.close()
+
+    return mf_mat
+
 def read_act_list():
     """
     テキストファイル("act-list.txt")から行動のリストを読み込み返す
@@ -166,6 +193,7 @@ def evaluate_geoclass(act, mat, k):
     """
     true_list = read_geoclass_true_list(act)
     all_true_count = true_list.count(1)
+
     #print(all_true_count)
 
     act_list = read_act_list()
@@ -184,6 +212,8 @@ def evaluate_geoclass(act, mat, k):
 
     for i in range(k):
         score = mat[act_index, topk_index[i]]
+        #print(topk_index[i])
+        #print(len(true_list))
         if score < 1.0:
             break
         if true_list[topk_index[i]] == 1:
@@ -204,7 +234,7 @@ def evaluate_geoclass(act, mat, k):
     except ZeroDivisionError as e:
         f_measure = "ZeroDivisionError"
 
-    return [recall, precision]
+    return [recall, precision, f_measure]
 
 
 
@@ -233,49 +263,61 @@ if __name__ == '__main__':
 
 
 
-    act_geoclass_mat = read_act_geoclass_matrix()
-    act_geoclass_mat = np.matrix(act_geoclass_mat)
-    cf = CollaborativeFiltering(act_geoclass_mat)
+    # act_geoclass_mat = read_act_geoclass_matrix()
+    # act_geoclass_mat = np.matrix(act_geoclass_mat)
+    # cf1 = CollaborativeFiltering(act_geoclass_mat)
+
+    mf_mat = read_mf_matrix()
+    mf_mat = np.matrix(mf_mat)
+    # cf2 = CollaborativeFiltering(mf_mat)
 
     #lsa_mat = cf.lsa(30)
-    nP, nQ = cf.matrix_factorization(3)
-    mf_mat = np.dot(nP.T, nQ)
-
-    f1 = open('mf-matrix.txt', 'w')
-    nR = np.array(mf_mat)
-    for i in range(len(nR)):
-        line = ""
-        for j in range(len(nR[i])):
-            value = nR[i][j]
-            if j == (len(nR[i]) - 1):
-                line += str(value) + "\n"
-                break
-            line += str(value) + " "
-        #print(line)
-        # for qid in qids:
-        #     line = line + ' ' + qid
-        # line += '\n'
-        f1.write(line)
-    f1.close()
-    exit()
+    # nP, nQ = cf1.matrix_factorization(15)
+    # mf_mat = np.dot(nP.T, nQ)
+    #
+    # f1 = open('mf-matrix-15.txt', 'w')
+    # nR = np.array(mf_mat)
+    # for i in range(len(nR)):
+    #     line = ""
+    #     for j in range(len(nR[i])):
+    #         value = nR[i][j]
+    #         if j == (len(nR[i]) - 1):
+    #             line += str(value) + "\n"
+    #             break
+    #         line += str(value) + " "
+    #     #print(line)
+    #     # for qid in qids:
+    #     #     line = line + ' ' + qid
+    #     # line += '\n'
+    #     f1.write(line)
+    # f1.close()
+    # exit()
 
     #recall = evaluate_geoclass("デート:する", lsa_mat, 1000)
     #print(recall)
     # recall = evaluate_geoclass("デート:する", mf_mat, 1000)
     # print(recall)
 
+    #
+    # for k in range(24):
+    #     if k == 0:
+    #         continue
+    #     lsa_mat = cf1.lsa(k*20)
+    #     recall = evaluate_geoclass("イチャイチャ:する", lsa_mat, 1000)
+    #     print(recall[2])
 
-
-    """
-    評価用
-    k = input()
-    k = int(k)
-
-    for k in range(24):
-        lsa_mat = lsa(act_geoclass_mat, k*20)
-        recall = evaluate_geoclass("デート:する", lsa_mat, 1000)
-        print(recall)
+    recall = evaluate_geoclass("暇つぶし:する", mf_mat, 1000)
+    print(recall[2])
+    recall = evaluate_geoclass("花見:する", mf_mat, 1000)
+    print(recall[2])
+    recall = evaluate_geoclass("自然:感じる", mf_mat, 1000)
+    print(recall[2])
+    recall = evaluate_geoclass("イチャイチャ:する", mf_mat, 1000)
+    print(recall[2])
+    recall = evaluate_geoclass("デート:する", mf_mat, 1000)
+    print(recall[2])
     exit()
+
 
     lsa_mat = lsa(act_geoclass_mat, k)
     # topk_index = get_topk_column_index(mat, 2, 2)
@@ -298,5 +340,3 @@ if __name__ == '__main__':
         print(geoclass)
         # score = str(result[i][1])
         # print(geoclass + ":" +score)
-
-    """
