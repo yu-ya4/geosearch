@@ -1,21 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from elasticsearch import Elasticsearch
+from cabocha_matcher import CaboChaMatcher
+from chiebukuro import Chiebukuro
+
 class GeoMatrix():
     def __init__(self):
         self.geo_matrix  = 0
+        self.chie = Chiebukuro()
 
 
-    def read_action_dict(self):
+    def make_natural_matrix(self):
         """
-        テキストファイル(action_dict.txt)から行動の辞書を読み込
+        テキストファイル(action_dict.txt)から行動の辞書を読み込み，
+        ナチュラルな(modifyを分割したりしていない)geographic action matrixを作成し，
+        (natural_matrix.txt)に書き込む
+        また同時に，ナチュラルな行動のリストも作成する(natural_actions.txt)
 
         Returns:
             dict[str, list[int]]
             行動の辞書, qidを値に
         """
         action_dict = {}
-        f = open('./action_dict_test.txt', 'r') #地物クラスリストを読み込む
+        types = self.read_geoclass_list()
+        f = open('./action_dict.txt', 'r') #地物クラスリストを読み込む
+        fa = open('./natural_actions.txt', 'w')
+        fn = open('./natural_matrix.txt', 'w')
         for line in f:
             line = line.replace('\n', '')
             line = line.split('/')
@@ -31,10 +42,23 @@ class GeoMatrix():
             qids = line[2].split(' ')
             qids.pop()
 
-            index = line[0] + '/' + line[1]
+            action = line[0] + '/' + line[1] + '\n'
+            fa.write(action)
+            answers = self.chie.get_answers(qids)
+            action_vec = self.chie.extract_geo_type(answers, types)
 
-
-            action_dict[index] = qids
+            i = 1
+            scores = ''
+            for score in action_vec:
+                scores += str(score)
+                if i < len(action_vec):
+                    scores += ' '
+                    i += 1
+                else:
+                    scores += '\n'
+            fn.write(scores)
+        fn.close()
+        fa.close()
         f.close()
 
         return action_dict
@@ -59,5 +83,4 @@ if __name__ == '__main__':
     geo_matrix = GeoMatrix()
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
-    action_dict = geo_matrix.read_action_dict()
-    print(action_dict)
+    geo_matrix.make_natural_matrix()
