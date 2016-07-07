@@ -251,11 +251,9 @@ class Chiebukuro():
                 else:
                     index = action[1] + '/' + adverbs
                 if index in action_dict:
-                    action_dict[index].append(0)
-                    action_dict[action].append(question_id)
+                    action_dict[index].append(question_id)
                 else:
-                    action_dict[index] = [0]
-                    action_dict[action] = [question_id]
+                    action_dict[index] = [question_id]
         return action_dict
 
 
