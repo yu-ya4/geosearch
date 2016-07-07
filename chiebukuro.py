@@ -6,11 +6,11 @@ import json
 from elasticsearch import Elasticsearch
 from cabocha_matcher import CaboChaMatcher
 
+
 class Chiebukuro():
     def __init__(self):
         self.es = Elasticsearch(host='192.168.20.44', port=9200, timeout=10000)
         self.index = 'chie'
-
     def search_questions(self, query):
         '''
         search for questions and get json response
@@ -217,6 +217,28 @@ class Chiebukuro():
 
         return answers
 
+    def extract_geo_type(self, answers, types):
+        '''
+        Args:
+            answers: list[dict[str, str or int]]
+            types: list[str]
+        Returns:
+            list[int]
+            action vec
+        '''
+
+
+        action_vec = []
+        text = ''
+        for answer in answers:
+            text += answer['_source']['body']
+        # print(text)
+        for type in types:
+            score = text.count(type)
+            action_vec.append(score)
+
+        return action_vec
+
 
 
     def make_action_dict(self, questions):
@@ -274,11 +296,6 @@ if __name__ == '__main__':
     # print(action_dict)
 
     chie = Chiebukuro()
-
-    dic = {'話せる/ 静かに': [1430285049, 5463456, 535554], '置く/ （サーバーが': [109803840], '英語 教える/ 親切に': [11129676326], 'コスメ 販売/': [1049368820]}
-    chie.write_action_dict(dic)
-
-    exit()
     questions = chie.search_questions("場所")
     action_dict = chie.make_action_dict(questions)
-    print(action_dict)
+    chie.write_action_dict(action_dict)
