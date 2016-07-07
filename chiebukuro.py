@@ -34,26 +34,32 @@ class Chiebukuro():
 
         # print(res.json()['hits']['hits'][0]['_source']['body'])
 
-    def extract_action(self, questions):
+    def extract_action(self, question):
         '''
         extract actions from questions
 
         Args:
-            questions: dict
-                json形式のquestion
+            question: str
+                質問文
         Returns:
             action
         '''
 
-        for question in questions:
-            question_id = question['_source']['question_id']
-            title = question['_source']['title']
-            body = question['_source']['body']
 
-            print(str(question_id) + ': ' + str(body))
 
 
 if __name__ == '__main__':
     chie = Chiebukuro()
     questions = chie.search_questions("場所")
-    chie.extract_action(questions)
+
+    for question in questions:
+        question_id = question['_source']['question_id']
+        title = question['_source']['title']
+        body = question['_source']['body']
+
+        if title != body:
+            body = title + body
+
+        print(str(question_id) + ': ' + str(body))
+
+        action = chie.extract_action(body)
