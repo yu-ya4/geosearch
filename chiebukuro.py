@@ -13,10 +13,25 @@ class Chiebukuro():
 
 
 
-    def get_questions(self, query):
+    def search_questions(self, query):
         '''
-        質問を検索
-        '''
+        search for questions and get json response
 
-        res = requests.get('http://192.168.20.44:9200')
-        print(res.json())
+        Args:
+            query: str
+                検索クエリ
+        Returns:
+
+        '''
+        json = '{"size": 10,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"' + query + '\"","fields" : ["body", "title"]}}}'
+        u = 'http://192.168.20.44:9200/chie/answers/_search?pretty -d ' + json
+
+
+        # res = requests.get('http://192.168.20.44:9200')
+        res = requests.get(u)
+
+        print(res.json()['hits']['hits'][0])
+
+if __name__ == '__main__':
+    chie = Chiebukuro()
+    chie.search_questions("場所")
