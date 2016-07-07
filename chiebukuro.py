@@ -55,19 +55,13 @@ class Chiebukuro():
         ids = ''
         for question_id in question_ids:
             ids += str(question_id)
-            #ids += ' '
-        json = '{"query":{"query_string":{"query": "148926454 OR 148926564","default_field" : "question_id"}}}'
+            ids += ' '
+        json = {"query":{"query_string":{"query": "","default_field" : "question_id"}}}
+        json['query']['query_string']['query'] = ids
 
-        #json = '{query":{"query_string":{query": "' + ids + '","default_field" : "question_id"}}}'
+        res = self.es.search(index=self.index, doc_type='answers', body=json)
 
-        print(json)
-        u = 'http://192.168.20.44:9200/chie/answers/_search?pretty -d ' + json
-
-        # print(u)
-        # exit()
-
-        res = requests.get(u)
-        answers = res.json()
+        answers = res['hits']['hits']
 
         return answers
 
@@ -103,8 +97,8 @@ class Chiebukuro():
 
 if __name__ == '__main__':
     chie = Chiebukuro()
-    # print(chie.get_answers([18]))
-    # exit()
+    answers = chie.get_answers([148926454,148926564])
+    exit()
     questions = chie.search_questions("場所")
     action_dict = chie.make_action_dict(questions)
     print(action_dict)
