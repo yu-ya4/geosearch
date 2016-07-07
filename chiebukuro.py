@@ -24,14 +24,36 @@ class Chiebukuro():
 
         '''
         json = '{"size": 10,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"' + query + '\"","fields" : ["body", "title"]}}}'
-        u = 'http://192.168.20.44:9200/chie/answers/_search?pretty -d ' + json
-
+        u = 'http://192.168.20.44:9200/chie/questions/_search?pretty -d ' + json
 
         # res = requests.get('http://192.168.20.44:9200')
         res = requests.get(u)
+        questions = res.json()['hits']['hits']
 
-        print(res.json()['hits']['hits'][0])
+        return questions
+
+        # print(res.json()['hits']['hits'][0]['_source']['body'])
+
+    def extract_action(self, questions):
+        '''
+        extract actions from questions
+
+        Args:
+            questions: dict
+                json形式のquestion
+        Returns:
+            action
+        '''
+
+        for question in questions:
+            question_id = question['_source']['question_id']
+            title = question['_source']['title']
+            body = question['_source']['body']
+
+            print(str(question_id) + ': ' + str(body))
+
 
 if __name__ == '__main__':
     chie = Chiebukuro()
-    chie.search_questions("場所")
+    questions = chie.search_questions("場所")
+    chie.extract_action(questions)
