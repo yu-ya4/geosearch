@@ -36,16 +36,18 @@ class Chiebukuro():
 
         # print(res.json()['hits']['hits'][0]['_source']['body'])
 
-    def extract_action(self, question):
+    def extract_action(self, que_body):
         '''
         extract actions from questions
 
         Args:
-            question: str
+            que_body: str
                 質問文
         Returns:
             action
         '''
+
+        return que_body[0:2]
 
     def get_answers(self, question_ids):
         '''
@@ -64,7 +66,7 @@ class Chiebukuro():
             dict[str, list[int]]
 
         '''
-        actions = {}
+        action_dict = {}
         for question in questions:
             question_id = question['_source']['question_id']
             title = question['_source']['title']
@@ -75,16 +77,17 @@ class Chiebukuro():
 
             # print(str(question_id) + ': ' + str(body))
             action = self.extract_action(body)
-            if action in actions:
-                actions[action].append(question_id)
+            if action in action_dict:
+                action_dict[action].append(question_id)
             else:
-                actions[action] = [question_id]
+                action_dict[action] = [question_id]
 
-        return actions
+        return action_dict
 
 
 
 if __name__ == '__main__':
     chie = Chiebukuro()
     questions = chie.search_questions("場所")
-    action_dict = make_action_dict(questions)
+    action_dict = chie.make_action_dict(questions)
+    print(action_dict)
