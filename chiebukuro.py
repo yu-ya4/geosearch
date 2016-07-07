@@ -23,7 +23,7 @@ class Chiebukuro():
             questionのlist
             json形式
         '''
-        json = {"size": 10000,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
+        json = {"size": 120000,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
 
         res = self.es.search(index=self.index, doc_type='questions', body=json)
 
@@ -45,7 +45,7 @@ class Chiebukuro():
         res = []
         pattern_num = 23
         except_verbs = ['行く', 'いく', '来る', 'くる', '着く', 'つく', '訪れる', 'できる', '有る', '在る',
-                        'ある', 'なる', 'いる', '住む', '言う', 'いう', '聞く', 'きく', 'する', '思う']
+                        'ある', 'なる', 'いる', '住む', '言う', 'いう', '聞く', 'きく', 'する', '思う', '出る']
 
         matcher = CaboChaMatcher()
         pat = []
@@ -256,6 +256,15 @@ class Chiebukuro():
                     action_dict[index] = [question_id]
         return action_dict
 
+    def write_action_dict(self, action_dict):
+        fw = open('action_dict.txt', 'w')
+        for action, q_ids in action_dict.items():
+            question_ids = ''
+            for q_id in q_ids:
+                question_ids += str(q_id)
+                question_ids += ' '
+            fw.write(action + '/' +  question_ids + '\n')
+        fw.close()
 
 
 if __name__ == '__main__':
@@ -265,6 +274,11 @@ if __name__ == '__main__':
     # print(action_dict)
 
     chie = Chiebukuro()
+
+    dic = {'話せる/ 静かに': [1430285049, 5463456, 535554], '置く/ （サーバーが': [109803840], '英語 教える/ 親切に': [11129676326], 'コスメ 販売/': [1049368820]}
+    chie.write_action_dict(dic)
+
+    exit()
     questions = chie.search_questions("場所")
     action_dict = chie.make_action_dict(questions)
     print(action_dict)
