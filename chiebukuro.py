@@ -21,7 +21,9 @@ class Chiebukuro():
             query: str
                 検索クエリ
         Returns:
-
+            list[dict[str, str or int]]
+            questionのlist
+            json形式
         '''
         json = '{"size": 10,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"' + query + '\"","fields" : ["body", "title"]}}}'
         u = 'http://192.168.20.44:9200/chie/questions/_search?pretty -d ' + json
@@ -45,21 +47,44 @@ class Chiebukuro():
             action
         '''
 
+    def get_answers(self, question_ids):
+        '''
+        Args:
+            question_ids: list[int]
+        Returns:
+            list[str]
+            answerのbodyのリスト
+        '''
+
+    def make_action_dict(self, questions):
+        '''
+        Args:
+            questions: list[dict[str, str or int]]
+        Returns:
+            dict[str, list[int]]
+
+        '''
+        actions = {}
+        for question in questions:
+            question_id = question['_source']['question_id']
+            title = question['_source']['title']
+            body = question['_source']['body']
+
+            if title != body:
+                body = title + body
+
+            # print(str(question_id) + ': ' + str(body))
+            action = self.extract_action(body)
+            if action in actions:
+                actions[action].append(question_id)
+            else:
+                actions[action] = [question_id]
+
+        return actions
 
 
 
 if __name__ == '__main__':
     chie = Chiebukuro()
     questions = chie.search_questions("場所")
-
-    for question in questions:
-        question_id = question['_source']['question_id']
-        title = question['_source']['title']
-        body = question['_source']['body']
-
-        if title != body:
-            body = title + body
-
-        print(str(question_id) + ': ' + str(body))
-
-        action = chie.extract_action(body)
+    action_dict = make_action_dict(questions)
