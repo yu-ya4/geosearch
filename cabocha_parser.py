@@ -73,6 +73,7 @@ class Sentence():
         [やはり - まちがっている,
          俺の - 青春ラブコメは - まちがっている]
         '''
+        
         paths = []
         processed_cids = set()  # 処理済みのチャンクを記憶する
 
@@ -250,5 +251,3 @@ class Token():
 
     def __str__(self):
         return self.surface if self.surface is not '' else ('[' + self.pos + ']')
-
-

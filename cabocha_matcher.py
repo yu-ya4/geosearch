@@ -45,7 +45,8 @@ class CaboChaMatcher():
                 [['hoge', ...], [...], ...]を返す．
         '''
         matchedtoks = self.match_tok(sentence, pattern)
-        res = self._tolist(self._tostr(matchedtoks))
+        res = self._tolist(matchedtoks)
+        # res = self._tolist(self._tostr(matchedtoks))
         return res
 
     def _tolist(self, matchedtoks):
