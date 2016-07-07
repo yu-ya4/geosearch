@@ -23,7 +23,7 @@ class Chiebukuro():
             questionのlist
             json形式
         '''
-        json = {"size": 100,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
+        json = {"size": 10000,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
 
         res = self.es.search(index=self.index, doc_type='questions', body=json)
 
@@ -102,6 +102,7 @@ class Chiebukuro():
                                     ''' [名詞]する場所，[名詞]できる場所，[名詞]ができる場所 パターンの処理'''
                                     act.append(result[0][0].dictform)#対象
                                     act.append('する') #動作
+                                    v_tid = result[0][0].tid
                                 elif result[0][0].dictform in except_verbs:
                                     continue
                                 else:
@@ -126,32 +127,16 @@ class Chiebukuro():
                                     if cnk.link == v_cid and cnk.cid != o_cid:
                                         adverbs.append(cnk)
 
-
-                            # if o_tid != -1: #8, 9
-                            #     for path in paths:
-                            #         if o_cid != -1:
-                            #             break
-                            #         o_cid = path.get_cnk_has_tok(o_tid)
-                            #         v_cid = path.get_cnk(o_cid).link
-                            #
-                            # for path in paths:
-                            #     if v_cid != -1:
-                            #         break
-                            #     v_cid = path.get_cnk_has_tok(v_tid)
-                            #
-                            # for path in paths:
-                            #     for cnk in path.cnks:
-                            #         if cnk.cid == o_cid:
-                            #             break
-                            #         if cnk.link == v_cid:
-                            #             adverbs.append(cnk)
-                            #             continue
+                            str_adverbs = []
                             for adverb in adverbs:
-                                print(adverb)
+                                str_adverb = ''
+                                for tok in adverb.toks:
+                                    str_adverb += tok.surface
+                                str_adverbs.append(str_adverb)
 
-                            print(act)
+                            str_adverbs = sorted(str_adverbs) #副詞の順をソート
+                            act.append(str_adverbs)
 
-                            exit()
                             res.append(act)
 
                             extracted = 1
@@ -245,39 +230,43 @@ class Chiebukuro():
         action_dict = {}
         for question in questions:
             body = question
-            # question_id = question['_source']['question_id']
-            # title = question['_source']['title']
-            # body = question['_source']['body']
-            #
-            # if title != body:
-            #     body = title + body
+            question_id = question['_source']['question_id']
+            title = question['_source']['title']
+            body = question['_source']['body']
+
+            if title != body:
+                body = title + body
 
             # print(str(question_id) + ': ' + str(body))
             actions = []
             actions = self.extract_action(body)
 
             for action in actions:
+                adverbs = ''
+                for adverb in action[2]:
+                    adverbs += ' '
+                    adverbs += adverb
                 if action[0] != None:
-                    index = action[0] + ' ' + action[1]
+                    index = action[0] + ' ' + action[1] + '/' + adverbs
                 else:
-                    index = action[1]
+                    index = action[1] + '/' + adverbs
                 if index in action_dict:
                     action_dict[index].append(0)
-                    # action_dict[action].append(question_id)
+                    action_dict[action].append(question_id)
                 else:
                     action_dict[index] = [0]
-                    # action_dict[action] = [question_id]
+                    action_dict[action] = [question_id]
         return action_dict
 
 
 
 if __name__ == '__main__':
 
-    test = Chiebukuro()
-    action_dict = test.make_action_dict(['京都で遊ぶことができる場所','こどもが京都で着物を体験できる場所','BBQをできる場所','京都で着物の体験ができる場所','綺麗に星を見られる場所','星の綺麗に見える場所','こどもが京都で着物を体験することができる場所','みんなでフグを食べることができる場所','みんなで上手に海中水泳ができる場所', 'みんなで遊ぶ場所', 'ある場所'])
-    print(action_dict)
-
-    # chie = Chiebukuro()
-    # questions = chie.search_questions("場所")
-    # action_dict = chie.make_action_dict(questions)
+    # test = Chiebukuro()
+    # action_dict = test.make_action_dict(['京都で寝る場所','京都で花見することができる場所','京都で遊ぶことができる場所','こどもが京都で着物を体験できる場所','BBQをできる場所','京都で着物の体験ができる場所','綺麗に星を見られる場所','星の綺麗に見える場所','京都でこどもが着物を体験することができる場所','みんなでフグを食べることができる場所','上手にみんなで海中水泳ができる場所', 'みんなで遊ぶ場所', 'ある場所'])
     # print(action_dict)
+
+    chie = Chiebukuro()
+    questions = chie.search_questions("場所")
+    action_dict = chie.make_action_dict(questions)
+    print(action_dict)
