@@ -23,7 +23,7 @@ class Chiebukuro():
             questionのlist
             json形式
         '''
-        json = {"size": 1000,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
+        json = {"size": 100,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
 
         res = self.es.search(index=self.index, doc_type='questions', body=json)
 
@@ -39,6 +39,7 @@ class Chiebukuro():
             que_body: str
                 質問文
         Returns:
+            list[list[str, str, list[str,...]]]
             action
         '''
         res = []
@@ -59,17 +60,20 @@ class Chiebukuro():
 
         for text in texts:
             sentence = matcher.parse(text)
+            print(type(sentence))
 
-            exacted = 0
+            extracted = 0
             for i in range(0, pattern_num):#パターンとのマッチング
 
-                if exacted: #抽出されたらその時点で終了
+                if extracted: #抽出されたらその時点で終了
                     break
                 else:
 
-                    results = matcher.match(sentence, pattern[i])
+                    results = matcher.match(sentence, pattern[i]) # list[[Token, Token],...]で返したい
+                    print(results)
 
                     if results != None:
+
                         act = []
                         for result in results:
                             if len(result) == 2:
@@ -97,10 +101,9 @@ class Chiebukuro():
                                 else:
                                     act.append(None)#対象
                                     act.append(result[0][0].dictform) #動作
-                            act.append(self.qid)
                             res.append(act)
 
-                            exacted = 1
+                            extracted = 1
                             '''
                             print( self.text)
                             print('\n')
@@ -140,7 +143,6 @@ class Chiebukuro():
         text = text.replace("見れる", "みれる")
         text = text.replace("出来る", "できる")
 
-        print(text)
         for sym in syms:
             text = text.replace(sym, " ")
 
@@ -191,27 +193,40 @@ class Chiebukuro():
         '''
         action_dict = {}
         for question in questions:
-            question_id = question['_source']['question_id']
-            title = question['_source']['title']
-            body = question['_source']['body']
-
-            if title != body:
-                body = title + body
+            body = question
+            # question_id = question['_source']['question_id']
+            # title = question['_source']['title']
+            # body = question['_source']['body']
+            #
+            # if title != body:
+            #     body = title + body
 
             # print(str(question_id) + ': ' + str(body))
             actions = []
             actions = self.extract_action(body)
+
             for action in actions:
-                if action in action_dict:
-                    action_dict[action].append(question_id)
+                if action[0] != None:
+                    index = action[0] + ' ' + action[1]
                 else:
-                    action_dict[action] = [question_id]
+                    index = action[1]
+                if index in action_dict:
+                    action_dict[index].append(0)
+                    # action_dict[action].append(question_id)
+                else:
+                    action_dict[index] = [0]
+                    # action_dict[action] = [question_id]
         return action_dict
 
 
 
 if __name__ == '__main__':
-    chie = Chiebukuro()
-    questions = chie.search_questions("場所")
-    action_dict = chie.make_action_dict(questions)
+
+    test = Chiebukuro()
+    action_dict = test.make_action_dict(['景色を見る場所', '遊ぶ場所', 'ある場所'])
     print(action_dict)
+
+    # chie = Chiebukuro()
+    # questions = chie.search_questions("場所")
+    # action_dict = chie.make_action_dict(questions)
+    # print(action_dict)
