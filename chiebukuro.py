@@ -3,15 +3,12 @@
 
 import requests
 import json
+from elasticsearch import Elasticsearch
 
 class Chiebukuro():
     def __init__(self):
-        self.q_url = '192.168.20.44:9200/chie/questions/_search?pretty'
-        self.a_url = '192.168.20.44:9200/chie/answers/_search?pretty'
-        # self.q_url = 'loclhost:9200/chie/questions/_search?pretty'
-        # self.a_url = 'localhost:9200/chie/answers/_search?pretty'
-
-
+        self.es = Elasticsearch(host='192.168.20.44', port=9200, timeout=10000)
+        self.index = 'chie'
 
     def search_questions(self, query):
         '''
@@ -25,16 +22,13 @@ class Chiebukuro():
             questionのlist
             json形式
         '''
-        json = '{"size": 10,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"' + query + '\"","fields" : ["body", "title"]}}}'
-        u = 'http://192.168.20.44:9200/chie/questions/_search?pretty -d ' + json
+        json = {"size": 10,"query":{"query_string":{"analyzer": "ngram_analyzer","query": "\"場所\"", "fields" : ["body", "title"]}}}
 
-        # res = requests.get('http://192.168.20.44:9200')
-        res = requests.get(u)
-        questions = res.json()['hits']['hits']
+        res = self.es.search(index=self.index, doc_type='questions', body=json)
+
+        questions = res['hits']['hits']
 
         return questions
-
-        # print(res.json()['hits']['hits'][0]['_source']['body'])
 
     def extract_action(self, que_body):
         '''
@@ -47,16 +41,37 @@ class Chiebukuro():
             action
         '''
 
-        return que_body[0:2]
+        return que_body
 
     def get_answers(self, question_ids):
         '''
         Args:
             question_ids: list[int]
         Returns:
-            list[str]
-            answerのbodyのリスト
+            list[dict[str, str or int]]
+            answerのlist
+            json形式
         '''
+        ids = ''
+        for question_id in question_ids:
+            ids += str(question_id)
+            #ids += ' '
+        json = '{"query":{"query_string":{"query": "148926454 OR 148926564","default_field" : "question_id"}}}'
+
+        #json = '{query":{"query_string":{query": "' + ids + '","default_field" : "question_id"}}}'
+
+        print(json)
+        u = 'http://192.168.20.44:9200/chie/answers/_search?pretty -d ' + json
+
+        # print(u)
+        # exit()
+
+        res = requests.get(u)
+        answers = res.json()
+
+        return answers
+
+
 
     def make_action_dict(self, questions):
         '''
@@ -88,6 +103,8 @@ class Chiebukuro():
 
 if __name__ == '__main__':
     chie = Chiebukuro()
+    # print(chie.get_answers([18]))
+    # exit()
     questions = chie.search_questions("場所")
     action_dict = chie.make_action_dict(questions)
     print(action_dict)
