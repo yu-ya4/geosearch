@@ -67,13 +67,25 @@ class Sentence():
             if cnk.cid == cid:
                 return cnk
 
+    # 追加 tidを指定し，そのTokenの属するChunkのcidを返す
+    def get_cnk_has_tok(self, tid):
+        res = -1
+        cnks = self.cnks
+        for cnk in cnks:
+            for tok in cnk.toks:
+                if tok.tid == tid:
+                    res = cnk.cid
+                    break
+        return res
+
+
     def breakup(self):
         '''センテンスを係り受け構造に従って分解する
         e.g. やはり俺の青春ラブコメはまちがっている ->
         [やはり - まちがっている,
          俺の - 青春ラブコメは - まちがっている]
         '''
-        
+
         paths = []
         processed_cids = set()  # 処理済みのチャンクを記憶する
 
