@@ -60,7 +60,6 @@ class Chiebukuro():
 
         for text in texts:
             sentence = matcher.parse(text)
-            print(type(sentence))
 
             extracted = 0
             for i in range(0, pattern_num):#パターンとのマッチング
@@ -70,12 +69,15 @@ class Chiebukuro():
                 else:
 
                     results = matcher.match(sentence, pattern[i]) # list[[Token, Token],...]で返したい
-                    print(results)
+                    #print(results)
 
                     if results != None:
 
                         act = []
                         for result in results:
+                            v_tid = -1
+                            o_tid = -1
+                            o_cid = -1
                             if len(result) == 2:
                                 #動作の対象に'場所'を抽出した場合は無視
                                 if result[0][0].dictform == '場所':
@@ -83,6 +85,7 @@ class Chiebukuro():
                                 elif i == 8 or i == 9:
                                     act.append(result[0][0].dictform + result[1][0].dictform)#対象
                                     act.append('する') #動作
+                                    o_tid = result[0][0].tid
                                 elif result[1][0].dictform in except_verbs:
                                     continue
                                 else:
@@ -101,6 +104,42 @@ class Chiebukuro():
                                 else:
                                     act.append(None)#対象
                                     act.append(result[0][0].dictform) #動作
+
+                            adverbs = []
+                            paths = sentence.breakup()
+
+                            if o_tid != -1: #8,9
+                                o_cid = sentence.get_cnk_has_tok(o_tid)
+                                v_cid = sentence.get_cnk(o_cid).link
+
+                                for cnk in sentence.cnks:
+                                    if cnk.link == v_cid and cnk.cid != o_cid:
+                                        adverbs.append(cnk)
+                            # if o_tid != -1: #8, 9
+                            #     for path in paths:
+                            #         if o_cid != -1:
+                            #             break
+                            #         o_cid = path.get_cnk_has_tok(o_tid)
+                            #         v_cid = path.get_cnk(o_cid).link
+                            #
+                            # for path in paths:
+                            #     if v_cid != -1:
+                            #         break
+                            #     v_cid = path.get_cnk_has_tok(v_tid)
+                            #
+                            # for path in paths:
+                            #     for cnk in path.cnks:
+                            #         if cnk.cid == o_cid:
+                            #             break
+                            #         if cnk.link == v_cid:
+                            #             adverbs.append(cnk)
+                            #             continue
+
+                            print(adverbs)
+                            print(paths[0])
+                            print(paths[0].cnks[0].cid)
+
+                            exit()
                             res.append(act)
 
                             extracted = 1
@@ -223,7 +262,7 @@ class Chiebukuro():
 if __name__ == '__main__':
 
     test = Chiebukuro()
-    action_dict = test.make_action_dict(['景色を見る場所', '遊ぶ場所', 'ある場所'])
+    action_dict = test.make_action_dict(['みんなで上手に海中水泳ができる場所', 'みんなで遊ぶ場所', 'ある場所'])
     print(action_dict)
 
     # chie = Chiebukuro()
