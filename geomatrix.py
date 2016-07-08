@@ -10,7 +10,7 @@ class GeoMatrix():
     def __init__(self):
         self.geo_matrix = self.read_divided_matrix()
         self.geos = self.read_geoclass_list()
-        self.acts = self.read_natural_actions()
+        self.acts = self.read_divided_actions()
         self.chie = Chiebukuro()
 
     def make_divide_action_dic(self):
@@ -193,7 +193,15 @@ class GeoMatrix():
         Return:
             list[str, str, str]
         '''
+        act_list = []
 
+        f = open('./divided_actions.txt', 'r')
+        for line in f:
+            line = line.replace('\n', '')
+            action = line.split(' ')
+            act_list.append(action)
+
+        return act_list
 
     def read_natural_matrix(self):
         """
@@ -254,6 +262,7 @@ class GeoMatrix():
 if __name__ == '__main__':
     geomat = GeoMatrix()
     print(len(geomat.geo_matrix))
+    print(len(geomat.acts))
 
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
