@@ -7,7 +7,9 @@ from chiebukuro import Chiebukuro
 
 class GeoMatrix():
     def __init__(self):
-        self.geo_matrix  = 0
+        self.geo_matrix = 0
+        self.geos = self.read_geoclass_list()
+        self.acts = self.read_natural_actions()
         self.chie = Chiebukuro()
 
 
@@ -79,8 +81,77 @@ class GeoMatrix():
 
         return geoclass_list
 
+    def read_natural_actions(self):
+        '''
+        テキストファイル("natural_actions.txt")からactionのリストを読み込む
+        1つのアクションは[object, verb, [modifiers]]の形式
+
+        Return:
+            list[[str, str, list[str]]]
+        '''
+
+        act_list = []
+
+        f = open('./natural_actions.txt', 'r')
+        for line in f:
+            line = line.replace('\n', '')
+            line = line.split('/')
+            o_v = line[0].split(' ')
+            if len(o_v) == 2:
+                o = o_v[0]
+                v = o_v[1]
+            else:
+                o = ''
+                v = o_v[0]
+            ms = line[1].split(' ')
+            ms.pop(0)
+            act_list.append([o, v, ms])
+
+        return act_list
+
+    def read_natural_matrix(self):
+        """
+        テキストファイル("natural_matrix.txt")から行列を読み込み
+
+        Returns:
+            List<List<float>>
+            行動地物クラス行列
+        """
+        natural_mat = [] #行動-地物クラス行列
+        f = open('./natural_matrix.txt', 'r')
+        for line in f:
+            line = line.replace('\n', '')
+            line = line.split(' ')
+            for i in range(len(line)):
+                #行末の空白対策
+                if line[i] == "":
+                    del line[i]
+                    continue
+                line[i] = float(line[i])
+
+            natural_mat.append(line)
+            if line == '':
+                break
+        f.close()
+
+        return natural_mat
+
 if __name__ == '__main__':
     geo_matrix = GeoMatrix()
+    geo_matrix.read_natural_matrix()
+    print(geo_matrix.acts)
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
-    geo_matrix.make_natural_matrix()
+
+    # action_dict = {}
+    # f = open('./action_dict.txt', 'r') #地物クラスリストを読み込む
+    # i = 1
+    # for line in f:
+    #     line = line.replace('\n', '')
+    #     line = line.split('/')
+    #
+    #     if len(line) > 3:
+    #         print(i)
+    #     i += 1
+    #
+    # f.close()
