@@ -8,7 +8,7 @@ import numpy as np
 
 class GeoMatrix():
     def __init__(self):
-        self.geo_matrix = self.read_natural_matrix()
+        self.geo_matrix = self.read_divided_matrix()
         self.geos = self.read_geoclass_list()
         self.acts = self.read_natural_actions()
         self.chie = Chiebukuro()
@@ -185,6 +185,16 @@ class GeoMatrix():
 
         return act_list
 
+    def read_divided_actions(self):
+        '''
+        テキストファイル("divided_actions.txt")からactionのリストを読み込む
+        1つのアクションは[object, verb, modify]の形式
+
+        Return:
+            list[str, str, str]
+        '''
+
+
     def read_natural_matrix(self):
         """
         テキストファイル("natural_matrix.txt")から行列を読み込み
@@ -212,8 +222,38 @@ class GeoMatrix():
 
         return natural_mat
 
+    def read_divided_matrix(self):
+        """
+        テキストファイル("divided_matrix.txt")から行列を読み込み
+
+        Returns:
+            List<List<float>>
+            行動地物クラス行列
+        """
+
+        divided_mat = [] #行動-地物クラス行列
+        f = open('./divided_matrix.txt', 'r')
+        for line in f:
+            line = line.replace('\n', '')
+            line = line.split(' ')
+            for i in range(len(line)):
+                #行末の空白対策
+                if line[i] == "":
+                    del line[i]
+                    continue
+                line[i] = float(line[i])
+
+            divided_mat.append(line)
+            if line == '':
+                break
+        f.close()
+
+        return divided_mat
+
+
 if __name__ == '__main__':
-    geo_matrix = GeoMatrix()
+    geomat = GeoMatrix()
+    print(len(geomat.geo_matrix))
 
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
