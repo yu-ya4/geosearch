@@ -7,10 +7,46 @@ from chiebukuro import Chiebukuro
 
 class GeoMatrix():
     def __init__(self):
-        self.geo_matrix = 0
+        self.geo_matrix = self.read_natural_matrix
         self.geos = self.read_geoclass_list()
         self.acts = self.read_natural_actions()
         self.chie = Chiebukuro()
+
+    def make_divide_action_dic(self):
+        '''
+        "natural_actions.txt"と"natural_matrix.txt"をもとに，
+        1つのactionを[object(0 or 1), verb(1), modify(0or 1)]とした行列を作成し，
+        "divided_matrix.txt"に書き込む．
+        また同時に，modifyを分割した行動のリストも作成する"divided_action_dict.txt"
+        '''
+        # self.acts = self.read_natural_actions()
+        divided_actions = {} # {divided_action: [i]}
+        for i in range(len(self.acts)):
+            natural_action = self.acts[i]
+            d_act = [natural_action[0], natural_action[1]]
+            index =  d_act[0] + ' ' + d_act[1]
+            if index in divided_actions:
+                divided_actions[index].append(i)
+            else:
+                divided_actions[index] = [i]
+
+            for k in range(len(natural_action[2])):
+                d_act = [natural_action[0], natural_action[1], natural_action[2][k]]
+                index = d_act[0] + ' ' + d_act[1] + ' ' + d_act[2]
+                if index in divided_actions:
+                    divided_actions[index].append(i)
+                else:
+                    divided_actions[index] = [i]
+
+        fw = open('./divided_action_dict.txt', 'w')
+        for action, i_list in divided_actions.items():
+            i_s = ''
+            for i in i_list:
+                i_s += str(i)
+                i_s += ' '
+            fw.write(action + '/' + i_s + '\n')
+        fw.close()
+
 
 
     def make_natural_matrix(self):
@@ -138,8 +174,7 @@ class GeoMatrix():
 
 if __name__ == '__main__':
     geo_matrix = GeoMatrix()
-    geo_matrix.read_natural_matrix()
-    print(geo_matrix.acts)
+    geo_matrix.make_divide_action_dic()
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
 
