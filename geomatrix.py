@@ -4,20 +4,20 @@
 from elasticsearch import Elasticsearch
 from cabocha_matcher import CaboChaMatcher
 from chiebukuro import Chiebukuro
+import numpy as np
 
 class GeoMatrix():
     def __init__(self):
-        self.geo_matrix = self.read_natural_matrix
+        self.geo_matrix = self.read_natural_matrix()
         self.geos = self.read_geoclass_list()
         self.acts = self.read_natural_actions()
         self.chie = Chiebukuro()
 
     def make_divide_action_dic(self):
         '''
-        "natural_actions.txt"と"natural_matrix.txt"をもとに，
-        1つのactionを[object(0 or 1), verb(1), modify(0or 1)]とした行列を作成し，
-        "divided_matrix.txt"に書き込む．
-        また同時に，modifyを分割した行動のリストも作成する"divided_action_dict.txt"
+        "natural_actions.txt"をもとに
+        1つのactionを[object(0 or 1), verb(1), modify(0or 1)]と
+        した行動の辞書を作成する"divided_action_dict.txt"
         '''
         # self.acts = self.read_natural_actions()
         divided_actions = {} # {divided_action: [i]}
@@ -46,6 +46,46 @@ class GeoMatrix():
                 i_s += ' '
             fw.write(action + '/' + i_s + '\n')
         fw.close()
+
+    def make_divided_matrix(self):
+        '''
+        "divided_action_dict.txt"と"natural_matrix.txt"をもとに，
+        1つのactionを[object(0 or 1), verb(1), modify(0or 1)]とした行列を作成し，
+        "divided_matrix.txt"に書き込む．
+        また同時に，modifyを分割した行動のリストも作成する"divided_actions.txt"
+        '''
+        # self.geo_matrix = self.read_natural_matrix
+
+
+        f = open('./divided_action_dict.txt', 'r')
+        fa = open('./divided_actions.txt', 'w')
+        fd = open('./divided_matrix.txt', 'w')
+        for line in f:
+            divided_action = line.split('/')[0]
+            i_s = line.split('/')[1]
+            i_list = i_s.split(' ')
+            i_list.pop()
+
+            fa.write(divided_action + '\n')
+
+            action_vec = np.array(len(self.geos)*[0])
+            for i in i_list:
+                action_vec = action_vec + np.array(self.geo_matrix[int(i)])
+
+            action_vec = action_vec.tolist()
+            it = 1
+            scores = ''
+            for score in action_vec:
+                scores += str(score)
+                if it < len(action_vec):
+                    scores += ' '
+                    it += 1
+                else:
+                    scores += '\n'
+            fd.write(scores)
+        fd.close()
+        fa.close()
+        f.close()
 
 
 
@@ -174,7 +214,7 @@ class GeoMatrix():
 
 if __name__ == '__main__':
     geo_matrix = GeoMatrix()
-    geo_matrix.make_divide_action_dic()
+
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
 
