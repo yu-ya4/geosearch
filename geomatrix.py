@@ -4,7 +4,10 @@
 from elasticsearch import Elasticsearch
 from cabocha_matcher import CaboChaMatcher
 from chiebukuro import Chiebukuro
+from scipy import linalg
 import numpy as np
+import math
+import copy
 
 class GeoMatrix():
     def __init__(self):
@@ -12,6 +15,109 @@ class GeoMatrix():
         self.geos = self.read_geoclass_list()
         self.acts = self.read_divided_actions()
         self.chie = Chiebukuro()
+        self.rank = 0
+
+    def get_topk_geotype_index(self, mat, row, k):
+        """
+        指定した行の上位k件のインデックス番号をリストで返す
+
+        Args:
+            mat: 行列
+            row: 行番号
+            k: 取得するインデックス件数
+
+        Returns:
+            指定した行の上位k件のインデックス番号からなるリスト
+        """
+        mat = np.matrix(self.geo_matrix)
+        matrix = copy.deepcopy(mat)
+        topk_index = []
+        column = matrix[row]
+
+        while k > 0:
+            #print(column)
+            max_index = np.nanargmax(column)
+            topk_index.append(max_index)
+            column[0, max_index] = -10000
+            #column[0, max_index] = float("num") nanargmaxが正しく動いてくれてない？
+            k -= 1
+
+        return topk_index
+
+    def ppmi(self, matrix):
+
+        #行数，列数を取得
+        row_num = matrix.shape[0]
+        column_num = matrix.shape[1]
+
+        result_matrix = np.zeros((row_num, column_num), dtype='float')
+        # print(result_matrix)
+
+        for i in range(row_num):
+            for j in range(column_num):
+                log_ij = np.log(matrix[i, j])
+                log_ij_sum = np.log(matrix.mean() * row_num * column_num)
+                log_i_sum = np.log(matrix.sum(axis=1)[i,0])
+                log_j_sum = np.log(matrix.sum(axis=0)[0,j])
+
+                temp = log_ij + log_ij_sum - log_i_sum - log_j_sum
+                res = max(0, temp)
+
+                result_matrix[i,j] = res
+
+        self.geo_matrix = result_matrix
+
+    def svd(self):
+        """
+        行列を特異値分解(SVD)する
+
+        Returns:
+            List<numpy.matrix>
+            特異値分解された行列3つ
+            特異値はリストで返される
+        """
+        #mat = np.matrix(mat)
+
+        """
+        full_matrices:
+            1: UとVが正方行列に(次元が合わずに死ぬ??)
+            0: UとVのかたちをいい感じに(とりあえずこれでなんとかしてる)
+        """
+        mat = np.matrix(self.geo_matrix)
+        U, s, V = np.linalg.svd(mat, full_matrices=0)
+        #print(s)
+
+        return [U, s, V]
+
+    def lsa(self, k):
+        """
+        行列にLSAを適用する
+
+        Returns:
+            numpy.matrix
+            LSAを適用した結果
+        """
+        mat = np.matrix(self.geo_matrix)
+        rank = np.linalg.matrix_rank(mat)
+        print(rank)
+        # ランク以上の次元数を指定した場合は，ランク数分の特徴量を使用
+        #npの仕様上，ランク以上分の特徴量を算出してるっぽい？
+        # 負の値が入力された場合はk = 0 とする
+        U, s, V = self.svd()
+        if k > rank:
+            k = rank
+        if k < 0:
+            k = 0
+
+        #print("ランクk=%d 累積寄与率=%f" % (k, sum(s[:k]) / sum(s)))
+        S = np.zeros((len(s),len(s)))
+        S[:k, :k] = np.diag(s[:k]) #上からk個の特異値のみを使用
+
+        lsa_mat = np.dot(U, np.dot(S, V))
+
+        self.geo_matrix = lsa_mat
+
+
 
     def make_divide_action_dic(self):
         '''
@@ -199,6 +305,8 @@ class GeoMatrix():
         for line in f:
             line = line.replace('\n', '')
             action = line.split(' ')
+            if len(action) == 2:
+                action.append('')
             act_list.append(action)
 
         return act_list
@@ -261,8 +369,26 @@ class GeoMatrix():
 
 if __name__ == '__main__':
     geomat = GeoMatrix()
-    print(len(geomat.geo_matrix))
-    print(len(geomat.acts))
+    # i = 0
+    # count = 0
+    # actions = {} #acts: freq
+    # for row in geomat.geo_matrix:
+    #     if sum(row) != 0:
+    #         action = geomat.acts[i]
+    #         index = action[0] + ' ' + action[1] + ' '+ action[2]+ ':' + str(i)
+    #         actions[index] = sum(row)
+    #         count += 1
+    #     i += 1
+    #
+    # f = open('./act_fre.txt', 'w')
+    # for index, v in sorted(actions.items(), key=lambda x:x[1]):
+    #     rank = index + ': ' + str(v) + '\n'
+    #     f.write(rank)
+    # f.close()
+    # exit()
+    #
+    # geomat.lsa(100)
+    # print(geomat.geo_matrix)
 
     # geotypes = geo_matrix.read_geoclass_list()
     # print(geotypes)
