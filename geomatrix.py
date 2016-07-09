@@ -17,7 +17,7 @@ class GeoMatrix():
         self.chie = Chiebukuro()
         self.rank = 0
 
-    def get_topk_geotype_index(self, mat, row, k):
+    def get_topk_geotype_index(self, row, k=10):
         """
         指定した行の上位k件のインデックス番号をリストで返す
 
@@ -43,6 +43,12 @@ class GeoMatrix():
             k -= 1
 
         return topk_index
+
+    def show_topk_geos(self, row, k=10):
+        geo_index = self.get_topk_geotype_index(row, k)
+        for index in geo_index:
+            print(self.geos[index])
+
 
     def ppmi(self):
         matrix = np.matrix(self.geo_matrix)
@@ -70,6 +76,51 @@ class GeoMatrix():
                 result_matrix[i,j] = res
 
         self.geo_matrix = result_matrix
+
+    def get_rating_error(self, r, p, q):
+        return r - np.dot(p, q)
+
+
+    def get_error(self, R, P, Q, beta):
+        error = 0.0
+        for i in range(len(R)):
+            for j in range(len(R[i])):
+                if R[i][j] == 0:
+                    continue
+                error += pow(self.get_rating_error(R[i][j], P[:,i], Q[:,j]), 2)
+        error += beta/2.0 * (np.linalg.norm(P) + np.linalg.norm(Q))
+        return error
+
+    def matrix_factorization(self, K, steps=5000, alpha=0.0002, beta=0.02, threshold=0.001):
+        """
+        行列にMatrix Factorizationを適用する
+
+        Args:
+            K: the number of latent features
+            steps: the maximum number of steps to perform the optimisation
+            alfha: the learning rate
+            beta: the regularization parameter,  avoid overfitting
+            threshold: when error is under threshold, break
+
+        """
+        R = np.array(self.geo_matrix)
+        P = np.random.rand(K, len(R))
+        Q = np.random.rand(K, len(R[0]))
+
+        for step in range(steps):
+            print(step)
+            for i in range(len(R)):
+                for j in range(len(R[i])):
+                    if R[i][j] == 0:
+                        continue
+                    err = self.get_rating_error(R[i][j], P[:, i], Q[:, j])
+                    for k in range(K):
+                        P[k][i] += alpha * (2 * err * Q[k][j])
+                        Q[k][j] += alpha * (2 * err * P[k][i])
+            error = self.get_error(R, P, Q, beta)
+            if error < threshold:
+                break
+        self.geo_matrix = np.matrix(P).dot(np.matrix(Q))
 
     def svd(self):
         """
