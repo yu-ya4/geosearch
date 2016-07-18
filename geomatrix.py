@@ -91,7 +91,7 @@ class GeoMatrix():
         error += beta/2.0 * (np.linalg.norm(P) + np.linalg.norm(Q))
         return error
 
-    def matrix_factorization(self, K, steps=5000, alpha=0.0002, beta=0.02, threshold=0.001):
+    def matrix_factorization(self, K, steps=500, alpha=0.0002, beta=0.02, threshold=0.001):
         """
         行列にMatrix Factorizationを適用する
 
@@ -107,9 +107,15 @@ class GeoMatrix():
         P = np.random.rand(K, len(R))
         Q = np.random.rand(K, len(R[0]))
 
+        zero_array = np.zeros(len(R[0]))
+        true_array = zero_array == 0
+
         for step in range(steps):
             print(step)
             for i in range(len(R)):
+                check = R[i] == 0
+                if np.array_equal(check, true_array):
+                    continue
                 for j in range(len(R[i])):
                     if R[i][j] == 0:
                         continue
@@ -120,7 +126,7 @@ class GeoMatrix():
             error = self.get_error(R, P, Q, beta)
             if error < threshold:
                 break
-        self.geo_matrix = np.matrix(P).dot(np.matrix(Q))
+        self.geo_matrix = np.matrix(P.T).dot(np.matrix(Q))
 
     def svd(self):
         """
