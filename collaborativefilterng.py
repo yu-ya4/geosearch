@@ -3,6 +3,8 @@
 
 import copy
 import math
+import pywFM
+import pandas as pd
 import numpy as np
 from scipy import linalg
 
