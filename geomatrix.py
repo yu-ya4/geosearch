@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from elasticsearch import Elasticsearch
-from cabocha_matcher import CaboChaMatcher
+# from elasticsearch import Elasticsearch
+# from cabocha_matcher import CaboChaMatcher
 from chiebukuro import Chiebukuro
 from scipy import linalg
 import numpy as np
@@ -60,15 +60,25 @@ class GeoMatrix():
         result_matrix = np.zeros((row_num, column_num), dtype='float')
         # print(result_matrix)
 
+        log_ij_sum = np.log(matrix.mean() * row_num * column_num)
+
+        column_sum = []
+        for j in range(column_num):
+            c_sum = matrix.sum(axis=0)[0,j]
+            if c_sum == 0:
+                column_sum.append(0)
+            else:
+                column_sum.append(np.log(c_sum))
+
         for i in range(row_num):
+            print(i)
+            log_i_sum = np.log(matrix.sum(axis=1)[i,0])
             for j in range(column_num):
                 if matrix[i, j] == 0:
                     res = 0
                 else:
                     log_ij = np.log(matrix[i, j])
-                    log_ij_sum = np.log(matrix.mean() * row_num * column_num)
-                    log_i_sum = np.log(matrix.sum(axis=1)[i,0])
-                    log_j_sum = np.log(matrix.sum(axis=0)[0,j])
+                    log_j_sum = column_sum[j]
 
                     temp = log_ij + log_ij_sum - log_i_sum - log_j_sum
                     res = max(0, temp)
@@ -91,7 +101,7 @@ class GeoMatrix():
         error += beta/2.0 * (np.linalg.norm(P) + np.linalg.norm(Q))
         return error
 
-    def matrix_factorization(self, K, steps=500, alpha=0.0002, beta=0.02, threshold=0.001):
+    def matrix_factorization(self, K, steps=5000, alpha=0.0002, beta=0.02, threshold=0.001):
         """
         行列にMatrix Factorizationを適用する
 
@@ -429,7 +439,9 @@ class GeoMatrix():
 
 
 if __name__ == '__main__':
-    geomat = GeoMatrix()
+    g = GeoMatrix()
+    g.ppmi()
+    print("finish")
     # i = 0
     # count = 0
     # actions = {} #acts: freq
