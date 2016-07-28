@@ -32,22 +32,26 @@ class GeoMatrix():
         mat = np.matrix(self.geo_matrix)
         matrix = copy.deepcopy(mat)
         topk_index = []
+        topk_score = []
         column = matrix[row]
 
         while k > 0:
             #print(column)
             max_index = np.nanargmax(column)
             topk_index.append(max_index)
-            column[0, max_index] = -10000
+            topk_score.append(column[0, max_index])
+            column[0, max_index] = -1000000
             #column[0, max_index] = float("num") nanargmaxが正しく動いてくれてない？
             k -= 1
 
-        return topk_index
+        return topk_index, topk_score
 
     def show_topk_geos(self, row, k=10):
-        geo_index = self.get_topk_geotype_index(row, k)
+        geo_index, scores = self.get_topk_geotype_index(row, k)
+        i = 0
         for index in geo_index:
-            print(self.geos[index])
+            print(self.geos[index] + ': ' + str(scores[i]))
+            i += 1
 
 
     def ppmi(self):
@@ -71,8 +75,11 @@ class GeoMatrix():
                 column_sum.append(np.log(c_sum))
 
         for i in range(row_num):
-            print(i)
-            log_i_sum = np.log(matrix.sum(axis=1)[i,0])
+            r_sum = matrix.sum(axis=1)[i,0]
+            if r_sum == 0:
+                continue
+            else:
+                log_i_sum = np.log(r_sum)
             for j in range(column_num):
                 if matrix[i, j] == 0:
                     res = 0
@@ -101,7 +108,7 @@ class GeoMatrix():
         error += beta/2.0 * (np.linalg.norm(P) + np.linalg.norm(Q))
         return error
 
-    def matrix_factorization(self, K, steps=5000, alpha=0.0002, beta=0.02, threshold=0.001):
+    def matrix_factorization(self, K, steps=1000, alpha=0.0002, beta=0.02, threshold=0.001):
         """
         行列にMatrix Factorizationを適用する
 
